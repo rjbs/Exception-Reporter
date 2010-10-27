@@ -3,6 +3,7 @@ use Moose::Role;
 
 use Data::GUID qw(guid_string);
 use List::Util qw(first);
+use Params::Util qw(_HASH0);
 use Try::Tiny;
 
 use Exception::Reporter::Types;
@@ -19,16 +20,27 @@ sub report_exception {
   confess "report_exception must be called on an instance, not a class"
     unless blessed $invocant;
 
-  $summary->{guid} ||= guid_string;
+  $summary->{guid}    ||= guid_string;
+  $summary->{to_dump} ||= {};
 
   $_->summarize($error, $summary) for $invocant->summarizers;
+
+  $summary->{reporter} ||= caller;
+
+  for my $key (keys %{ $summary->{to_dump} }) {
+    $summary->{to_dump} = [ data => $summary->{to_dump}{$key} ]
+      if _HASH0($summary->{to_dump}{$key});
+  }
+
+  $summary->{to_dump} ||= [ data => \%ENV ];
 
   # {
   #   handled   => $bool,
   #   reporter  => $name,
   #   ident     => $ident,
   #   message   => $msg,
-  #   stack     => $stack,
+  #   fulltext  => $text,
+    #   stack     => $stack, # make this just a to_dump ?
   #   to_dump   => {
   #     key => { ...dumpable... },
   #     key => [ type => { ...dumpable... } ],
