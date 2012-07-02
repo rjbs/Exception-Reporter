@@ -40,7 +40,7 @@ sub report_exception {
   #   ident     => $ident,
   #   message   => $msg,
   #   fulltext  => $text,
-    #   stack     => $stack, # make this just a to_dump ?
+  #   stack     => $stack, # make this just a to_dump ?
   #   to_dump   => {
   #     key => { ...dumpable... },
   #     key => [ type => { ...dumpable... } ],
@@ -65,6 +65,7 @@ has summarizers => (
   is  => 'ro',
   isa => 'ArrayRef[Exception::Reporter::Role::Summarizer]',
   traits  => 'Array',
+  builder => 'default_summarizers',
   handles => {
     summarizers     => 'elements',
     _add_summarizer => 'push',
@@ -75,6 +76,7 @@ has reporters => (
   is  => 'ro',
   isa => 'ArrayRef[Exception::Reporter::Role::Reporters]',
   traits  => 'Array',
+  builder => 'default_reporters',
   handles => {
     reporters => 'elements',
   },
