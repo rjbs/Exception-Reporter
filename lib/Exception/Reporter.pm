@@ -174,6 +174,16 @@ sub report_exception {
       push @summaries, [ $dumpable->[0], [ $sum->summarize($dumpable) ] ];
       next DUMPABLE;
     }
+
+    push @summaries, [
+      $dumpable->[0],
+      [ {
+        ident => "UNKNOWN",
+        body  => "the entry for <$dumpable->[0]> could not be summarized",
+        mimetype => 'text/plain',
+        filename => 'unknown.txt',
+      } ],
+    ];
   }
 
   for my $sender ($self->_senders) {
