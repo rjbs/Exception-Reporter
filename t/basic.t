@@ -9,7 +9,7 @@ use Test::More;
 
 use Exception::Reporter;
 use Exception::Reporter::Dumpable::File;
-use Exception::Reporter::Reporter::Email;
+use Exception::Reporter::Sender::Email;
 use Exception::Reporter::Summarizer::Email;
 use Exception::Reporter::Summarizer::File;
 use Exception::Reporter::Summarizer::ExceptionClass;
@@ -21,8 +21,8 @@ use Email::MIME::ContentType;
 
 my $reporter = Exception::Reporter->new({
   always_dump => { env => sub { \%ENV } },
-  reporters   => [
-    Exception::Reporter::Reporter::Email->new({
+  senders     => [
+    Exception::Reporter::Sender::Email->new({
       from => 'root',
       to   => 'IC Group Sysadmins <sysadmins@icgroup.com>',
     }),

@@ -1,8 +1,8 @@
 use strict;
 use warnings;
-package Exception::Reporter::Reporter::Email;
-# ABSTRACT: an exception reporter that sends detailed dumps via email
-use parent 'Exception::Reporter::Reporter';
+package Exception::Reporter::Sender::Email;
+# ABSTRACT: an report sender that sends detailed dumps via email
+use parent 'Exception::Reporter::Sender';
 
 use Digest::MD5 ();
 use Email::Address ();

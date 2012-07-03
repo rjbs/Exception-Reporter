@@ -86,7 +86,7 @@ sub new {
 
   my $guts = {
     summarizers => $arg->{summarizers},
-    reporters   => $arg->{reporters},
+    senders     => $arg->{senders},
     always_dump => $arg->{always_dump},
   };
 
@@ -97,7 +97,7 @@ sub new {
     }
   }
 
-  for my $test (qw(Summarizer Reporter)) {
+  for my $test (qw(Summarizer Sender)) {
     my $class = "Exception::Reporter::$test";
     my $key   = "\L${test}s";
 
@@ -176,8 +176,8 @@ sub report_exception {
     }
   }
 
-  for my $reporter ($self->_reporters) {
-    $reporter->send_report(
+  for my $sender ($self->_senders) {
+    $sender->send_report(
       \@summaries,
       $arg,
       {
