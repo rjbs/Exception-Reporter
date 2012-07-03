@@ -8,7 +8,12 @@ use Data::GUID guid_string => { -as => '_guid_string' };
 sub new {
   my ($class, $arg) = @_;
 
-  bless $arg => $class;
+  my $guts = {
+    summarizers => $arg->{summarizers},
+    reporters   => $arg->{reporters},
+  };
+
+  bless $guts => $class;
 }
 
 sub _summarizers {
