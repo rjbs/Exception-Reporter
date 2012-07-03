@@ -25,15 +25,8 @@ sub new {
   bless $guts => $class;
 }
 
-sub _summarizers {
-  my ($self) = @_;
-  return @{ $self->{summarizers} };
-}
-
-sub _reporters {
-  my ($self) = @_;
-  return @{ $self->{reporters} };
-}
+sub _summarizers { return @{ $_[0]->{summarizers} }; }
+sub _reporters   { return @{ $_[0]->{reporters} }; }
 
 sub report_exception {
   my ($self, $dumpables, $arg) = @_;
