@@ -3,6 +3,7 @@ use warnings;
 package Exception::Reporter::Summarizer::ExceptionClass;
 use parent 'Exception::Reporter::Summarizer';
 
+use YAML::XS ();
 use Try::Tiny;
 
 sub can_summarize {
@@ -22,15 +23,52 @@ sub summarize {
   # Another option here is to dump this in a few parts:
   # * a YAML dump of the message, error, and fields
   # * a dump of the stack trace
-  return(
-    {
-      filename => "exception.txt",
-      mimetype => 'text/plain',
-      ident    => $ident,
-      body     => join(qq{\n\n}, $exception->full_message,
-                                 $exception->trace->as_string),
+  my @summaries = ({
+    filename => "exception-msg.txt",
+    mimetype => 'text/plain',
+    ident    => $ident,
+    body     => $exception->full_message,
+  });
+
+  if (! $exception->NoContextInfo) {
+    push @summaries, (
+      {
+        filename => "exception-stack.txt",
+        mimetype => 'text/plain',
+        ident    => "stack trace",
+        body     => $exception->full_message,
+      },
+      {
+        filename => "exception-context.txt",
+        mimetype => 'text/plain',
+        ident    => "context info",
+        body     => YAML::XS::Dump({
+          time => $exception->time,
+          pid  => $exception->pid,
+          uid  => $exception->uid,
+          euid => $exception->euid,
+          gid  => $exception->gid,
+          egid => $exception->egid,
+        }),
+      },
+    );
+  }
+
+  if ($exception->Fields) {
+    my $hash = {};
+    for my $field ($exception->Fields) {
+      $hash->{ $field } = $exception->$field;
     }
-  );
+
+    push @summaries, {
+      filename => "exception-context.txt",
+      mimetype => 'text/plain',
+      ident    => "context info",
+      body     => YAML::XS::Dump($hash),
+    };
+  }
+
+  return @summaries;
 }
 
 1;
