@@ -34,9 +34,7 @@ sub report_exception {
 
   for my $dumpable (@$dumpables) {
     SUMMARIZER: for my $sum (@sumz) {
-      # use Data::Dumper; warn Dumper($sum, $dumpable);
       next unless $sum->can_summarize($dumpable);
-      warn "using $sum\n";
       push @summaries, $sum->summarize($dumpable);
       last SUMMARIZER;
     }
