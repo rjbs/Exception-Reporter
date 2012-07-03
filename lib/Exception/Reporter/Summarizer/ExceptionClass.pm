@@ -20,6 +20,9 @@ sub summarize {
   my $ident = $exception->error;
   ($ident) = split /\n/, $ident; # only the first line, please
 
+  # Yes, I have seen the case below need handling! -- rjbs, 2012-07-03
+  $ident = "exception of class " . ref $exception unless length $ident;
+
   # Another option here is to dump this in a few parts:
   # * a YAML dump of the message, error, and fields
   # * a dump of the stack trace
