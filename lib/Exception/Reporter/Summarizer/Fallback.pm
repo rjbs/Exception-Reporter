@@ -1,30 +1,53 @@
+use strict;
+use warnings;
 package Exception::Reporter::Summarizer::Fallback;
-use Moose;
-with 'Exception::Reporter::Role::Summarizer';
+use parent 'Exception::Reporter::Summarizer';
+
+use YAML::XS ();
+use Try::Tiny;
+
+sub can_summarize { 1 }
 
 sub summarize {
-  my ($self, $error, $summary) = @_;
+  my ($self, $entry) = @_;
+  my ($name, $value, $arg) = @$entry;
 
-  unless (defined $summary->{fulltext} and $summary->{fulltext} =~ /\S/) {
-    $summary->{fulltext} = try   { "$error" }
-                           catch { "error summarizing exception!" };
-  }
+  my $fn_base = $self->sanitize_filename($name);
 
-  unless ($summary->{ident}) {
-    my $string = $summary->{fulltext};
+  return try {
+    my $body  = ref $value     ? YAML::XS::Dump($value)
+              : defined $value ? $value
+              :                  "(undef)";;
 
-    $string =~ s/\A\s+//sm;
-    my ($ident) = split /\n/, $string, 2;
-    $ident = "unidentifiable error)" unless defined $ident and $ident =~ /\S/;
+    my $ident = $body;
+    $ident =~ s/\A---\s*// if ref $value; # strip the document marker
 
-    $summary->{ident} = $ident;
-  }
+    # If we've got a Perl-like exception string, make it more generic by
+    # stripping the throw location.
+    $ident =~ s/\s+(?:at .+?)? ?line\s\d+\.?$//;
 
-  $summary->{message} = $ident unless defined $summary->{message};
-
-  $ident =~ s/\s+(?:at .+?)? ?line\s\d+\.?$//;
-
-  return;
+    return {
+      filename => "$fn_base.txt",
+      mimetype => 'text/plain',
+      ident    => $ident,
+      body     => $body,
+    };
+  } catch {
+    return(
+      {
+        filename => "$fn_base-error.txt",
+        mimetype => 'text/plain',
+        ident    => "value for $name couldn't be processed",
+        body     => "could not summarize $name value: $_\n",
+      },
+      {
+        filename => "$fn_base-raw.txt",
+        mimetype => 'text/plain',
+        ident    => "stringified value for $name",
+        body     => do { no warnings 'uninitialized'; "$name" },
+      },
+    );
+  };
 }
 
 1;

@@ -1,116 +1,125 @@
+use strict;
+use warnings;
 package Exception::Reporter::Reporter::Email;
-use Moose;
 # ABSTRACT: an exception reporter that sends detailed dumps via email
 
-with 'Exception::Reporter::Role::Reporter';
-
 use Digest::MD5;
+use Email::Address;
 use Email::Date::Format qw(email_date);
 use Email::MIME::Creator;
 use Email::MessageID;
 use Email::Sender::Simple;
 use String::Truncate qw(elide);
-use YAML::XS qw(Dump);
 
 use namespace::autoclean;
 
-=head2 report_exception
+sub new {
+  my ($class, $arg) = @_;
 
-  $reporter->send_exception_report($exception, $summary);
+  my $from = $arg->{from} || Carp::confess("missing 'from' argument");
+  my $to   = $arg->{to}   || Carp::confess("missing 'to' argument"),
 
-This method sends an exception report to the sysadmins.  It contains:
+  ($from) = Email::Address->parse($from);
+  ($to)   = [ map {; Email::Address->parse($_) } (ref $to ? @$to : $to) ];
 
-  * the exception
-  * a YAML dump of the environment
-  * a YAML dump of anything contained in the %dumpable hash
+  # Allow mail from a simple, bare local-part like "root" -- rjbs, 2012-07-03
+  $from = Email::Address->new(undef, $arg->{from})
+    if ! $from and $arg->{from} =~ /\A[-.0-9a-zA-Z]+\z/;
 
-A GUID is used in generating a message id, and is returned by this method.
+  Carp::confess("couldn't interpret $arg->{from} as an email address")
+    unless $from;
+
+  my $env_from = $arg->{env_from} || $from->address;
+  my $env_to   = $arg->{env_to}   || [ map {; $_->address } @$to ];
+
+  $env_to = [ $env_to ] unless ref $env_to;
+
+  return bless {
+    from => $from,
+    to   => $to,
+    env_to   => $env_to,
+    env_from => $env_from,
+  }, $class;
+}
+
+sub from_header {
+  my ($self) = @_;
+  return $self->{from}->as_string;
+}
+
+sub to_header {
+  my ($self) = @_;
+  return join q{, }, map {; $_->as_string } @{ $self->{to} };
+}
+
+sub env_from {
+  my ($self) = @_;
+  return $self->{env_from};
+}
+
+sub env_to {
+  my ($self) = @_;
+  return @{ $self->{env_to} };
+}
+
+=head2 send_report
+
+ $email_reporter->send_report(\@summaries, \%arg, \%internal_arg);
+
+This method builds a multipart email message from the given summaries and
+sends it.
+
+C<%arg> is the same set of arguments given to Exception::Reporter's
+C<report_exception> method.  Arguments that will have an effect include:
+
+  extra_rcpts  - an arrayref of extra envelope recipients
+  reporter     - the name of the program reporting the exception
+  handled      - if true, the reported exception was handled and the user
+                 saw a simple error message; sets X-Exception-Handled header
+                 and adds a text part at the beginning of the report,
+                 calling out the "handled" status"
+
+C<%internal_arg> contains data produced by the Exception::Reporter using this
+object.  It includes the C<guid> of the report and the C<caller> calling the
+reporter.
+
+The GUID is used in generating a message id.
 
 All similar exceptions should have identical In-Reply-To headers, which can be
 used to thread common exceptions together.
 
-Valid arguments are:
-
-  reporter - the name of the program reporting the exception
-  handled  - if true, the reported exception was handled and the user saw
-             a simple error message; sets X-Exception-Handled header
-             and adds a text part at the beginning of the report, calling out
-             the "handled" status"
-
-  extra_rcpts  - an arrayref of extra envelope recipients
-  attach_files - an optional arrayref of files to attach; see below
-
-Each entry in F<attach_files> must be a hashref.  Keys in this hashref may be:
-
-  filename     - required
-  description  - optional
-  content_type - mime type; optional; defaults to application/unknown
-
 =cut
 
-sub report_exception {
-  my ($self, $exception, $summary) = @_;
+sub send_report {
+  my ($self, $summaries, $arg, $internal_arg) = @_;
 
-  $dumpable = $summary->{to_dump};
+  my @parts;
+  for my $summary (@$summaries) {
+    my ($name) = split /\n/, $summary->{ident};
 
-  # This belongs in a Summarizer. -- rjbs, 2010-10-26
-  #
-  # if (eval { $exception->isa('Exception::Class::Base') }) {
-  #   $desc = eval { $exception->description . ': ' . $exception->error };
-  #   $desc = "(no description)" unless defined $desc and length $desc;
-  #   $error_string = eval { $exception->can('as_text') }
-  #                 ? $exception->as_text # or else Mason $@ stringify to html
-  #                 : $exception->as_string;
-  # } else {
-
-  my $summary = Email::MIME->create(
-    body_str   => $fulltext,
-    attributes => {
-      filename     => 'exception.txt',
-      content_type => 'text/plain',
-      charset      => 'utf-8',
-      encoding     => 'quoted-printable',
-    },
-  );
-
-  my @dumps;
-  for my $key (sort keys %$dumpable) {
-    my $dump = Email::MIME->create(
-      body_str   => Dump($dumpable->{$key}),
+    push @parts, Email::MIME->create(
+      ($summary->{body_is_bytes} ? 'body' : 'body_str') => $summary->{body},
       attributes => {
-        name         => $key,
-        filename     => "$key.yaml",
-        content_type => "text/plain", # could be better
-        charset      => 'utf-8',
+        # This ends up sometimes being awful when the ident is (say) a 40
+        # character string with punctuation and so on.  Either we won't use
+        # this, or we'll need a sanitizer. -- rjbs, 2012-07-03
+        # name         => $name,
+
+        filename     => $summary->{filename},
+        content_type => $summary->{mimetype},
         encoding     => 'quoted-printable',
+
+        ($summary->{body_is_bytes}
+          ? ($summary->{charset} ? (charset => $summary->{charset}) : ())
+          : (charset => $summary->{charset} || 'utf-8')),
       },
     );
 
-    push @dumps, $dump;
+    $parts[-1]->header_set(Date=>);
   }
 
-  # XXX: move this up into the dumpables block -- rjbs, 2010-10-26
-  # for my $attachment (@{ $arg->{attach_files} }) {
-  #   my $attachment = Email::MIME->create(
-  #     body       => scalar do {
-  #       local $/;
-  #       open my $fh, '<', $attachment->{filename};
-  #       <$fh>;
-  #     },
-  #     attributes => {
-  #       name         => $attachment->{description},
-  #       filename     => $attachment->{filename},
-  #       content_type => $attachment->{content_type} || 'application/unknown',
-  #     },
-  #   );
-  #   push @dumps, $attachment;
-  # }
-
-  # XXX: If Email::MIME could do a plaintext prelude, we'd use that, I think.
-  # Using this means the part 0 isn't always the exception.  That's OK.
-  my @prelude;
-  if ($summary->{handled}) {
-    push @prelude, Email::MIME->create(
+  if ($arg->{handled}) {
+    unshift @parts, Email::MIME->create(
       body_str   => "DON'T PANIC!\n"
                   . "THIS EXCEPTION WAS CAUGHT AND EXECUTION CONTINUED\n"
                   . "THIS REPORT IS PROVIDED FOR INFORMATIONAL PURPOSES\n",
@@ -119,42 +128,46 @@ sub report_exception {
         charset      => 'utf-8',
         encoding     => 'quoted-printable',
         name         => 'prelude',
-        filename     => 'prelude.txt',
       },
     );
+    $parts[-1]->header_set(Date=>);
   }
 
-  (my $digest_desc = $description) =~ s/\(.+//g;
+  my $ident = $summaries->[0] && $summaries->[0]->{ident}
+           || "(unknown exception)";;
 
-  my ($package, $filename, $line) = caller;
+  (my $digest_ident = $ident) =~ s/\(.+//g;
+
+  my ($package, $filename, $line) = @{ $internal_arg->{caller} };
+
+  my $reporter = $arg->{reporter} || $package;
 
   my $email = Email::MIME->create(
     attributes => { content_type => 'multipart/mixed' },
-    parts      => [ @prelude, $summary, @dumps ],
-    header     => [
-      From => 'root',
-      To   => 'IC Group Sysadmins <sysadmins@icgroup.com>',
-      Date => format_date,
-      Subject      => elide("$arg->{reporter}: $description", 65),
+    parts      => \@parts,
+    header_str => [
+      From => $self->from_header,
+      To   => $self->to_header,
+      Date => email_date,
+      Subject      => elide("$reporter: $ident", 65),
       'X-Mailer'   => __PACKAGE__,
-      'Message-Id' => '<' . Email::MessageID->new(user => $guid) . '>',
-      'In-Reply-To'=> '<' . Email::MessageID->new(
-        user => md5_hex($digest_desc),
-        host => $arg->{reporter},
-      ) . '>',
+      'Message-Id' => Email::MessageID->new(user => $internal_arg->{guid})
+                                      ->in_brackets,
+      'In-Reply-To'=> Email::MessageID->new(
+                        user => Digest::MD5::md5_hex($digest_ident),
+                        host => $reporter,
+                      )->in_brackets,
       'X-Exception-Reporter-Reporter' => "$filename line $line ($package)",
       'X-Exception-Reporter-Handled'  => ($arg->{handled} ? 1 : 0),
     ],
   );
 
   eval {
-    Email::Sender::Simple->sendmail(
+    Email::Sender::Simple->send(
       $email,
       {
-        from    => 'root',
-        to      => [
-          'sysadmins@icgroup.com', @{ $arg->{extra_rcpts} || [] },
-        ],
+        from    => $self->env_from,
+        to      => [ $self->env_to ],
       }
     );
   };
