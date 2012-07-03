@@ -11,7 +11,15 @@ sub new {
   my $guts = {
     summarizers => $arg->{summarizers},
     reporters   => $arg->{reporters},
+    always_dump => $arg->{always_dump},
   };
+
+  if ($guts->{always_dump}) {
+    for my $key (keys %{ $guts->{always_dump} }) {
+      Carp::confess("non-coderef entry in always_dump: $key")
+        unless ref($guts->{always_dump}{$key}) eq 'CODE';
+    }
+  }
 
   for my $test (qw(Summarizer Reporter)) {
     my $class = "Exception::Reporter::$test";
@@ -39,7 +47,11 @@ sub report_exception {
 
   my @sumz = $self->_summarizers;
 
-  for my $dumpable (@$dumpables) {
+  for my $dumpable (
+    @$dumpables,
+    map {; [ $_, $self->{always_dump}{$_}->() ] }
+      sort keys %{$self->{always_dump}}
+  ) {
     SUMMARIZER: for my $sum (@sumz) {
       next unless $sum->can_summarize($dumpable);
       push @summaries, [ $dumpable->[0], [ $sum->summarize($dumpable) ] ];

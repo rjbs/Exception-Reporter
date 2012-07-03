@@ -20,6 +20,7 @@ use Exception::Class::Base;
 use Email::MIME::ContentType;
 
 my $reporter = Exception::Reporter->new({
+  always_dump => { env => sub { \%ENV } },
   reporters   => [
     Exception::Reporter::Reporter::Email->new({
       from => 'root',
@@ -87,12 +88,12 @@ my $guid = $reporter->report_exception(
 
   like($mime->header('Message-Id'), qr/\A<\Q$guid\E\@/, "guid in msg-id");
 
-  is(@parts, 6, "got six parts"); # prelude + 5 dumpables
+  is(@parts, 7, "got seven parts"); # prelude + 5 dumpables
 
   my @names = map {;
     parse_content_type($_->header('Content-Type'))->{attributes}{name}
   } @parts;
-  is_deeply(\@names, [ qw(prelude ecb string email f1 f2) ], "right names");
+  is_deeply(\@names, [ qw(prelude ecb string email f1 f2 env) ], "right names");
 
   my @ecb_parts = $parts[1]->subparts;
   is(@ecb_parts, 3, "Exception::Class part has 3 subparts");
