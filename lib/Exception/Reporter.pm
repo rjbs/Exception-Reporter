@@ -164,15 +164,15 @@ sub report_exception {
 
   my @sumz = $self->_summarizers;
 
-  for my $dumpable (
+  DUMPABLE: for my $dumpable (
     @$dumpables,
     map {; [ $_, $self->{always_dump}{$_}->() ] }
       sort keys %{$self->{always_dump}}
   ) {
-    SUMMARIZER: for my $sum (@sumz) {
+    for my $sum (@sumz) {
       next unless $sum->can_summarize($dumpable);
       push @summaries, [ $dumpable->[0], [ $sum->summarize($dumpable) ] ];
-      last SUMMARIZER;
+      next DUMPABLE;
     }
   }
 
