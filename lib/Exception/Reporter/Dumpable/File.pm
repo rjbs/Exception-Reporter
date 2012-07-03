@@ -1,17 +1,56 @@
 use strict;
 use warnings;
 package Exception::Reporter::Dumpable::File;
+# ABSTRACT: a dumpable object for a file on disk
 
-#    filename => ..., # from base above
-#    mimetype => ..., # from file object
-#    ident    => "file " . ..., # actual filename
-#    body     => ..., # from file object
-#    body_is_bytes => ..., # from file object
+=head1 SYNOPSIS
+
+  $reporter->report_exception(
+    [
+      ...,
+      [ import_file => Exception::Reporter::Dumpable::File->new(
+                         $path_to_file,
+                         { mimetype => 'text/csv', charset => 'us-ascii' },
+                       ) ],
+    ]
+  );
+
+This class exists to provide a simple way to tell Exception::Reporter to
+include a file from disk.  To make this useful, you should also include
+L<Exception::Reporter::Summarizer::File> in your summarizers.
+
+Right now, file content is read as soon as the file is constructed.  This may
+change in the future.
+
+=cut
 
 sub _err_msg {
   my ($class, $path, $msg) = @_;
   return "(file at <$path> was requested for dumping, but $msg)";
 }
+
+=method new
+
+  my $file_dumpable = Exception::Reporter::Dumpable::File->new(
+    $path,
+    \%arg,
+  );
+
+Useful arguments are:
+
+  mimetype - defaults to a guess by extension or application/octet-stream
+  charset  - defaults to utf-8 for text, undef otherwise
+  max_size - the maximum size to include; if the file is larger, a placeholder
+             will be included instead
+
+If the file object can't be constructed, B<the method does not die>.  This to
+avoid requiring exception handling in your exception handling.  Instead, C<new>
+I<will return a string> which will then be summarized as any other string.
+
+Maybe this will change in the future, and the file summarizer will know how to
+expect File::Error objects, or something like that.
+
+=cut
 
 sub new {
   my ($class, $path, $arg) = @_;

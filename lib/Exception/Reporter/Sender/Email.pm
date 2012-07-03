@@ -4,6 +4,14 @@ package Exception::Reporter::Sender::Email;
 # ABSTRACT: an report sender that sends detailed dumps via email
 use parent 'Exception::Reporter::Sender';
 
+=head1 OVERVIEW
+
+This is the only report sender you'll probably ever need.
+
+It turns the report into a multipart email message and sends it via email.
+
+=cut
+
 use Digest::MD5 ();
 use Email::Address ();
 use Email::Date::Format qw(email_date);
