@@ -13,6 +13,15 @@ sub new {
     reporters   => $arg->{reporters},
   };
 
+  for my $test (qw(Summarizer Reporter)) {
+    my $class = "Exception::Reporter::$test";
+    my $key   = "\L${test}s";
+
+    Carp::confess("no $key given!") unless $arg->{$key} and @{ $arg->{$key} };
+    Carp::confess("entry in $key is not a $class")
+      if grep { ! $_->isa($class) } @{ $arg->{$key} };
+  }
+
   bless $guts => $class;
 }
 
