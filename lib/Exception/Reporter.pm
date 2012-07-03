@@ -35,7 +35,7 @@ sub report_exception {
   for my $dumpable (@$dumpables) {
     SUMMARIZER: for my $sum (@sumz) {
       next unless $sum->can_summarize($dumpable);
-      push @summaries, $sum->summarize($dumpable);
+      push @summaries, [ $dumpable->[0], [ $sum->summarize($dumpable) ] ];
       last SUMMARIZER;
     }
   }

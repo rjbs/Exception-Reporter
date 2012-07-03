@@ -93,29 +93,41 @@ used to thread common exceptions together.
 sub send_report {
   my ($self, $summaries, $arg, $internal_arg) = @_;
 
+  # ?!? Presumably this can't really happen, but... you know what they say
+  # about zero-summary incidents, right?  -- rjbs, 2012-07-03
+  Carp::confess("can't report a zero-summary incident!") unless @$summaries;
+
   my @parts;
-  for my $summary (@$summaries) {
-    my ($name) = split /\n/, $summary->{ident};
+  GROUP: for my $summary (@$summaries) {
+    my @these_parts;
+    for my $summary (@{ $summary->[1] }) {
+      push @these_parts, Email::MIME->create(
+        ($summary->{body_is_bytes} ? 'body' : 'body_str') => $summary->{body},
+        attributes => {
+          filename     => $summary->{filename},
+          content_type => $summary->{mimetype},
+          encoding     => 'quoted-printable',
 
-    push @parts, Email::MIME->create(
-      ($summary->{body_is_bytes} ? 'body' : 'body_str') => $summary->{body},
-      attributes => {
-        # This ends up sometimes being awful when the ident is (say) a 40
-        # character string with punctuation and so on.  Either we won't use
-        # this, or we'll need a sanitizer. -- rjbs, 2012-07-03
-        # name         => $name,
+          ($summary->{body_is_bytes}
+            ? ($summary->{charset} ? (charset => $summary->{charset}) : ())
+            : (charset => $summary->{charset} || 'utf-8')),
+        },
+      );
 
-        filename     => $summary->{filename},
-        content_type => $summary->{mimetype},
-        encoding     => 'quoted-printable',
+      $these_parts[-1]->header_set(Date=>);
+    }
 
-        ($summary->{body_is_bytes}
-          ? ($summary->{charset} ? (charset => $summary->{charset}) : ())
-          : (charset => $summary->{charset} || 'utf-8')),
-      },
-    );
+    if (@these_parts == 1) {
+      push @parts, @these_parts;
+    } else {
+      push @parts, Email::MIME->create(
+        attributes => { content_type => 'multipart/related' },
+        parts       => \@these_parts,
+      );
+      $parts[-1]->header_set(Date=>);
+    }
 
-    $parts[-1]->header_set(Date=>);
+    $parts[-1]->name_set($summary->[0]);
   }
 
   if ($arg->{handled}) {
@@ -133,7 +145,7 @@ sub send_report {
     $parts[-1]->header_set(Date=>);
   }
 
-  my $ident = $summaries->[0] && $summaries->[0]->{ident}
+  my $ident = $summaries->[0][1][0]{ident} && $summaries->[0][1][0]{ident}
            || "(unknown exception)";;
 
   (my $digest_ident = $ident) =~ s/\(.+//g;

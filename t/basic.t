@@ -17,6 +17,8 @@ use Exception::Reporter::Summarizer::Fallback;
 
 use Exception::Class::Base;
 
+use Email::MIME::ContentType;
+
 my $reporter = Exception::Reporter->new({
   reporters   => [
     Exception::Reporter::Reporter::Email->new({
@@ -53,16 +55,19 @@ my $email = Email::MIME->create(
   body_str   => "This was a triumph.\n",
 );
 
-my $file_1 = Exception::Reporter::Dumpable::File->new('live-demo.t');
+my $file_1 = Exception::Reporter::Dumpable::File->new('misc/ls.long', {
+  mimetype => 'text/plain',
+  charset  => 'utf-8',
+});
 my $file_2 = Exception::Reporter::Dumpable::File->new('does-not-exist.txt');
 
 my $guid = $reporter->report_exception(
   [
-    [ ecb    => $exception  ],
-    [ string => "Your mom." ],
-    [ email  => $email      ],
-    [ f1     => $file_1     ],
-    [ f2     => $file_2     ],
+    [ ecb    => $exception    ],
+    [ string => "Your fault." ],
+    [ email  => $email        ],
+    [ f1     => $file_1       ],
+    [ f2     => $file_2       ],
   ],
   {
     handled  => 1,
@@ -82,7 +87,19 @@ my $guid = $reporter->report_exception(
 
   like($mime->header('Message-Id'), qr/\A<\Q$guid\E\@/, "guid in msg-id");
 
-  is(@parts, 8, "got eight parts");
+  is(@parts, 6, "got six parts"); # prelude + 5 dumpables
+
+  my @names = map {;
+    parse_content_type($_->header('Content-Type'))->{attributes}{name}
+  } @parts;
+  is_deeply(\@names, [ qw(prelude ecb string email f1 f2) ], "right names");
+
+  my @ecb_parts = $parts[1]->subparts;
+  is(@ecb_parts, 3, "Exception::Class part has 3 subparts");
+
+  is($mime->header('Subject'), "Xyz: Everything sucks.", "right header");
+  # print $mime->debug_structure;
+  # print $mime->as_string;
 }
 
 done_testing;
