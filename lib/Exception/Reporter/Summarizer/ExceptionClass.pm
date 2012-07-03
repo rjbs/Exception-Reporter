@@ -39,7 +39,9 @@ sub summarize {
         filename => "exception-stack.txt",
         mimetype => 'text/plain',
         ident    => "stack trace",
-        body     => $exception->full_message,
+        body     => $exception->trace->as_string({
+          max_arg_length => 0,
+        }),
       },
       {
         filename => "exception-context.txt",
