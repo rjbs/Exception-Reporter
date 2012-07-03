@@ -2,16 +2,15 @@ use strict;
 use warnings;
 package Exception::Reporter::Reporter::Email;
 # ABSTRACT: an exception reporter that sends detailed dumps via email
+use parent 'Exception::Reporter::Reporter';
 
-use Digest::MD5;
-use Email::Address;
+use Digest::MD5 ();
+use Email::Address ();
 use Email::Date::Format qw(email_date);
-use Email::MIME::Creator;
-use Email::MessageID;
-use Email::Sender::Simple;
+use Email::MIME::Creator ();
+use Email::MessageID ();
+use Email::Sender::Simple ();
 use String::Truncate qw(elide);
-
-use namespace::autoclean;
 
 sub new {
   my ($class, $arg) = @_;
