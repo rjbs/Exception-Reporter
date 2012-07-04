@@ -21,6 +21,7 @@ sub summarize {
     mimetype => 'message/rfc822',
     ident    => "email message for $fn_base",
     body     => $value->as_string,
+    body_is_bytes => 1,
   };
 }
 
