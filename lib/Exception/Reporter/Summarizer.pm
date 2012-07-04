@@ -17,7 +17,9 @@ filename-like string into a safer filename string.
 =cut
 
 sub new {
-  my ($class, $arg) = @_;
+  my $class = shift;
+
+  Carp::confess("$class constructor does not take any parameters") if @_;
 
   return bless {}, $class;
 }
@@ -25,6 +27,9 @@ sub new {
 sub sanitize_filename {
   my ($self, $filename) = @_;
 
+  # These don't need to be actually secure, since we won't use this for
+  # opening any filehandles. -- rjbs, 2012-07-03
+  $filename =~ s/\.+/./g;
   $filename =~ s/[^-a-zA-Z0-9]/-/g;
   return $filename;
 }
