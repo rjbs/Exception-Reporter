@@ -3,6 +3,13 @@ use warnings;
 package Exception::Reporter::Summarizer::File;
 use parent 'Exception::Reporter::Summarizer';
 
+=head1 OVERVIEW
+
+This summarizer expects L<Exception::Reporter::Dumpable::File> objects, and
+summarizes them just as you might expect.
+
+=cut
+
 use File::Basename ();
 use Try::Tiny;
 

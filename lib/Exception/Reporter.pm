@@ -114,10 +114,22 @@ sub _senders     { return @{ $_[0]->{senders} }; }
 
 =method report_exception
 
-  $reporter->report_exception(\@dumpables, $arg);
+  $reporter->report_exception(\@dumpables, \%arg);
 
 This method makes the reporter do its job: summarize dumpables and send a
 report.
+
+Useful options in C<%arg> are:
+
+  reporter    - the program or authority doing the reporting; defaults to
+                the calling package
+
+  handled     - this indicates that this exception has been handled and that
+                the user has not seen a terribel crash; senders might use
+                this to decide who needs to get woken up
+
+  extra_rcpts - this can be an arrayref of email addresses to be used as
+                extra envelope recipients by the Email sender
 
 Each entry in C<@dumpables> is expected to look like this:
 

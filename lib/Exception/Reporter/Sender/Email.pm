@@ -4,11 +4,34 @@ package Exception::Reporter::Sender::Email;
 # ABSTRACT: an report sender that sends detailed dumps via email
 use parent 'Exception::Reporter::Sender';
 
+=head1 SYNOPSIS
+
+  my $sender = Exception::Reporter::Sender::Email->new({
+    from => 'root',
+    to   => 'Beloved SysAdmins <sysadmins@example.com>',
+  });
+
 =head1 OVERVIEW
 
 This is the only report sender you'll probably ever need.
 
 It turns the report into a multipart email message and sends it via email.
+
+Each set of summaries is turned into a MIME message part.  If a dumpable has
+become more than one summary, its summaries will be children of a
+C<multipart/related> part.  Otherwise, its summary will become a part of the
+kind indicated in the summary.
+
+The C<ident> of the first summary will be used for the subject of the message.
+
+The GUID of the exception report (the thing returned by the reporter's
+C<report_exception> method) is used as the local part of the email message's
+Message-ID.
+
+Every reported message has a In-Reply-To header formed by combining a
+slightly-munged version of the C<ident> and the C<reporter>.  This means that
+similar exception report emails will thread together in a thread-capable email
+reader.
 
 =cut
 
@@ -90,10 +113,9 @@ C<%internal_arg> contains data produced by the Exception::Reporter using this
 object.  It includes the C<guid> of the report and the C<caller> calling the
 reporter.
 
-The GUID is used in generating a message id.
+If the email cannot be injected, a warning will be issued.
 
-All similar exceptions should have identical In-Reply-To headers, which can be
-used to thread common exceptions together.
+The return value of C<send_report> is not defined.
 
 =cut
 
