@@ -26,8 +26,6 @@ sub summarize {
     File::Basename::basename($value->path)
   );
 
-  # fn_base = sanitize leaf name
-
   return {
     filename => $fn_base,
     mimetype => $value->mimetype,

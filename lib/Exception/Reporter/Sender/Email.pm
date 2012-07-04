@@ -37,11 +37,11 @@ reader.
 
 use Digest::MD5 ();
 use Email::Address ();
-use Email::Date::Format qw(email_date);
 use Email::MIME::Creator ();
 use Email::MessageID ();
 use Email::Sender::Simple ();
-use String::Truncate qw(elide);
+use String::Truncate;
+use Try::Tiny;
 
 sub new {
   my ($class, $arg) = @_;
@@ -165,7 +165,7 @@ sub send_report {
                   . "THIS EXCEPTION WAS CAUGHT AND EXECUTION CONTINUED\n"
                   . "THIS REPORT IS PROVIDED FOR INFORMATIONAL PURPOSES\n",
       attributes => {
-        content_type => "text/plain", # could be better
+        content_type => "text/plain",
         charset      => 'utf-8',
         encoding     => 'quoted-printable',
         name         => 'prelude',
@@ -189,8 +189,7 @@ sub send_report {
     header_str => [
       From => $self->from_header,
       To   => $self->to_header,
-      Date => email_date,
-      Subject      => elide("$reporter: $ident", 65),
+      Subject      => String::Truncate::elide("$reporter: $ident", 65),
       'X-Mailer'   => __PACKAGE__,
       'Message-Id' => Email::MessageID->new(user => $internal_arg->{guid})
                                       ->in_brackets,
@@ -203,7 +202,7 @@ sub send_report {
     ],
   );
 
-  eval {
+  try {
     Email::Sender::Simple->send(
       $email,
       {
@@ -211,12 +210,9 @@ sub send_report {
         to      => [ $self->env_to ],
       }
     );
+  } catch {
+    Carp::cluck "failed to send exception report: $_";
   };
-
-  if ($@) {
-    Carp::cluck "failed to send exception report: $@";
-    return;
-  }
 
   return;
 }
