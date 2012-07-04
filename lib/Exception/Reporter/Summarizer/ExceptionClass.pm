@@ -3,6 +3,18 @@ use warnings;
 package Exception::Reporter::Summarizer::ExceptionClass;
 use parent 'Exception::Reporter::Summarizer';
 
+=head1 OVERVIEW
+
+This summarizer handles only L<Exception::Class> objects.  A dumped exception
+will result in between one and four summaries:
+
+  * a text summary of the exceptions full message
+  * if available, a YAML dump of the exception's pid, time, uid, etc.
+  * if available, the stringification of the exception's stack trace
+  * if any fields are defined, a YAML dump of the exception's fields
+
+=cut
+
 use YAML::XS ();
 use Try::Tiny;
 

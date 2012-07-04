@@ -3,6 +3,14 @@ use warnings;
 package Exception::Reporter::Summarizer::Email;
 use parent 'Exception::Reporter::Summarizer';
 
+=head1 OVERVIEW
+
+This summarizer will only summarize Email::Simple (or subclass) objects.  The
+emails will be summarized as C<message/rfc822> data containing the
+stringification of the message.
+
+=cut
+
 use Try::Tiny;
 
 sub can_summarize {
