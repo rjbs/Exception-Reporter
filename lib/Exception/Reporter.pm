@@ -5,6 +5,10 @@ package Exception::Reporter;
 
 =head1 SYNOPSIS
 
+B<Achtung!>  This is an experimental refactoring of some long-standing internal
+code.  It might get even more refactored.  Once I've sent a few hundred
+thousand exceptions through it, I'll remove this warning...
+
 First, you create a reporter.  Probably you stick it someplace globally
 accessible, like MyApp->reporter.
 
