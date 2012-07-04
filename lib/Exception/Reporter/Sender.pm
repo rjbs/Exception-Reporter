@@ -11,4 +11,12 @@ will cause an exception to be thrown.
 
 =cut
 
+sub new {
+  my $class = shift;
+
+  Carp::confess("$class constructor does not take any parameters") if @_;
+
+  return bless {}, $class;
+}
+
 1;
