@@ -172,6 +172,9 @@ sub report_exception {
 
   my $guid = _guid_string;
 
+  my @caller = caller;
+  $arg->{reporter} ||= $caller[0];
+
   my @summaries;
 
   my @sumz = $self->_summarizers;
@@ -204,7 +207,7 @@ sub report_exception {
       $arg,
       {
         guid   => $guid,
-        caller => [caller],
+        caller => \@caller,
       }
     );
   }
