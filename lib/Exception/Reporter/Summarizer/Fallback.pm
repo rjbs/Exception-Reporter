@@ -27,7 +27,7 @@ sub summarize {
     $ident =~ s/\s+(?:at .+?)? ?line\s\d+\.?$//;
 
     return {
-      filename => "$fn_base.txt",
+      filename => "$fn_base.yaml",
       mimetype => 'text/plain',
       ident    => $ident,
       body     => $body,
@@ -37,13 +37,13 @@ sub summarize {
       {
         filename => "$fn_base-error.txt",
         mimetype => 'text/plain',
-        ident    => "value for $name couldn't be processed",
+        ident    => "$name dumpable dumping error",
         body     => "could not summarize $name value: $_\n",
       },
       {
         filename => "$fn_base-raw.txt",
         mimetype => 'text/plain',
-        ident    => "stringified value for $name",
+        ident    => "$name dumpable stringification",
         body     => do { no warnings 'uninitialized'; "$name" },
       },
     );
