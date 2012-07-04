@@ -24,7 +24,7 @@ my $reporter = Exception::Reporter->new({
   senders     => [
     Exception::Reporter::Sender::Email->new({
       from => 'root',
-      to   => 'IC Group Sysadmins <sysadmins@icgroup.com>',
+      to   => 'Example Sysadmins <sysadmins@example.com>',
     }),
   ],
   summarizers => [
