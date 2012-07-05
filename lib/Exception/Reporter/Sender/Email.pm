@@ -237,7 +237,7 @@ sub _build_email {
       From => $self->from_header,
       To   => $self->to_header,
       Subject      => String::Truncate::elide("$reporter: $ident", 65),
-      'X-Mailer'   => __PACKAGE__,
+      'X-Mailer'   => (ref $self),
       'Message-Id' => Email::MessageID->new(user => $internal_arg->{guid})
                                       ->in_brackets,
       'In-Reply-To'=> Email::MessageID->new(
