@@ -2,6 +2,10 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+0.003     2012-07-05 15:19:21 America/New_York
+          replace YAML::XS with YAML; YAML::XS was sometimes causing
+          unexplained "attempt to free unreferenced scalar" errors
+
 0.002     2012-07-05 14:28:12 America/New_York
           add the caller_level option
 
