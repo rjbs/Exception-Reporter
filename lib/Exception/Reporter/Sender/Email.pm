@@ -228,7 +228,7 @@ sub _build_email {
 
   my ($package, $filename, $line) = @{ $internal_arg->{caller} };
 
-  my $reporter = $arg->{reporter} || $package;
+  my $reporter = $arg->{reporter};
 
   my $email = Email::MIME->create(
     attributes => { content_type => 'multipart/mixed' },
@@ -244,7 +244,8 @@ sub _build_email {
                         user => Digest::MD5::md5_hex($digest_ident),
                         host => $reporter,
                       )->in_brackets,
-      'X-Exception-Reporter-Reporter' => "$filename line $line ($package)",
+      'X-Exception-Reporter-Reporter' => $arg->{reporter},
+      'X-Exception-Reporter-Caller'   => "$filename line $line ($package)",
 
       ($arg->{handled} ? ('X-Exception-Reporter-Handled' => 1) : ()),
     ],
