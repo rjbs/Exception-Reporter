@@ -35,10 +35,13 @@ my $reporter = Exception::Reporter->new({
   ],
 });
 
-package X { sub x { Z->z } }
-package Z { sub z {
-  Exception::Class::Base->new(error => "Everything sucks.");
-} }
+{
+  package X; sub x { Z->z }
+  {
+    package Z;
+    sub z { Exception::Class::Base->new(error => "Everything sucks."); }
+  }
+}
 
 my $exception = X->x;
 
