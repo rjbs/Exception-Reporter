@@ -103,7 +103,8 @@ my $guid = do {
 
   like($mime->header('Message-Id'), qr/\A<\Q$guid\E\@/, "guid in msg-id");
 
-  is(@parts, 7, "got seven parts"); # prelude + 5 dumpables
+  # prelude + 5 dumpables in report call + 1 always_dump entry
+  is(@parts, 7, "got seven parts");
 
   my @names = map {;
     parse_content_type($_->header('Content-Type'))->{attributes}{name}
