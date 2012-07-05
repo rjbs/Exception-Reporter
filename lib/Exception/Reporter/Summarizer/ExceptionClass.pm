@@ -15,8 +15,9 @@ will result in between one and four summaries:
 
 =cut
 
-use YAML::XS ();
+use Exception::Class 1.30; # NoContextInfo
 use Try::Tiny;
+use YAML::XS ();
 
 sub can_summarize {
   my ($self, $entry) = @_;
