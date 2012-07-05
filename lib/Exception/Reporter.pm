@@ -46,7 +46,7 @@ exception, or a string, or a L<Throwable> object or who knows what.
 The sysadmins will get a nice email report with all the dumped data, and
 reports will thread.  Awesome, right?
 
-=head OVERVIEW
+=head1 OVERVIEW
 
 Exception::Reporter takes a bunch of input (the I<dumpables>) and tries to
 figure out how to summarize them and build them into a report to send to
