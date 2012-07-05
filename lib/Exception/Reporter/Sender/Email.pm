@@ -245,7 +245,8 @@ sub _build_email {
                         host => $reporter,
                       )->in_brackets,
       'X-Exception-Reporter-Reporter' => "$filename line $line ($package)",
-      'X-Exception-Reporter-Handled'  => ($arg->{handled} ? 1 : 0),
+
+      ($arg->{handled} ? ('X-Exception-Reporter-Handled' => 1) : ()),
     ],
   );
 
