@@ -113,7 +113,8 @@ C<%internal_arg> contains data produced by the Exception::Reporter using this
 object.  It includes the C<guid> of the report and the C<caller> calling the
 reporter.
 
-If the email cannot be injected, a warning will be issued.
+The mail is sent with the L<C<send_email>> method, which can be replaced in a
+subclass.
 
 The return value of C<send_report> is not defined.
 
@@ -140,6 +141,22 @@ sub send_report {
 
   return;
 }
+
+=method send_email
+
+  $sender->send_email($email, \%env);
+
+This method expects an email object (such as can be handled by
+L<Email::Sender>) and a a hashref that will have these two keys:
+
+  from - an envelope sender
+  to   - an arrayref of envelope recipients
+
+It sends the email.  It should not throw an exception on failure.  The default
+implementation uses Email::Sender.  If the email injection fails, a warning is
+issued.
+
+=cut
 
 sub send_email {
   my ($self, $email, $env) = @_;
