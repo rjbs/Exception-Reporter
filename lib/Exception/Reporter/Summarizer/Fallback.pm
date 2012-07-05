@@ -15,7 +15,7 @@ along with the stringification of the dumpable value.
 
 =cut
 
-use YAML::XS ();
+use YAML ();
 use Try::Tiny;
 
 sub can_summarize { 1 }
@@ -27,7 +27,7 @@ sub summarize {
   my $fn_base = $self->sanitize_filename($name);
 
   return try {
-    my $body  = ref $value     ? YAML::XS::Dump($value)
+    my $body  = ref $value     ? YAML::Dump($value)
               : defined $value ? $value
               :                  "(undef)";;
 

@@ -17,7 +17,7 @@ will result in between one and four summaries:
 
 use Exception::Class 1.30; # NoContextInfo
 use Try::Tiny;
-use YAML::XS ();
+use YAML ();
 
 sub can_summarize {
   my ($self, $entry) = @_;
@@ -60,7 +60,7 @@ sub summarize {
         filename => "exception-context.txt",
         mimetype => 'text/plain',
         ident    => "context info",
-        body     => YAML::XS::Dump({
+        body     => YAML::Dump({
           time => $exception->time,
           pid  => $exception->pid,
           uid  => $exception->uid,
@@ -82,7 +82,7 @@ sub summarize {
       filename => "exception-context.txt",
       mimetype => 'text/plain',
       ident    => "context info",
-      body     => YAML::XS::Dump($hash),
+      body     => YAML::Dump($hash),
     };
   }
 
