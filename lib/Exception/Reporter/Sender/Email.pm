@@ -126,6 +126,36 @@ sub send_report {
   # about zero-summary incidents, right?  -- rjbs, 2012-07-03
   Carp::confess("can't report a zero-summary incident!") unless @$summaries;
 
+  my $email = $self->_build_email($summaries, $arg, $internal_arg);
+
+  # Maybe we should try{} to sanity check the extra rcpts first. -- rjbs,
+  # 2012-07-05
+  $self->send_email(
+    $email,
+    {
+      from    => $self->env_from,
+      to      => [ $self->env_to, @{ $arg->{extra_rcpts} || [] }  ],
+    }
+  );
+
+  return;
+}
+
+sub send_email {
+  my ($self, $email, $env) = @_;
+
+  try {
+    Email::Sender::Simple->send($email, $env);
+  } catch {
+    Carp::cluck "failed to send exception report: $_";
+  };
+
+  return;
+}
+
+sub _build_email {
+  my ($self, $summaries, $arg, $internal_arg) = @_;
+
   my @parts;
   GROUP: for my $summary (@$summaries) {
     my @these_parts;
@@ -202,19 +232,7 @@ sub send_report {
     ],
   );
 
-  try {
-    Email::Sender::Simple->send(
-      $email,
-      {
-        from    => $self->env_from,
-        to      => [ $self->env_to ],
-      }
-    );
-  } catch {
-    Carp::cluck "failed to send exception report: $_";
-  };
-
-  return;
+  return $email;
 }
 
 1;
