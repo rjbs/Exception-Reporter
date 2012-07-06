@@ -17,22 +17,27 @@ sub dump {
   };
 
   if (defined $dump) {
-    my $ident = $dump;
-    $ident =~ s/\A---\s*//; # strip the document marker
+    my $ident = ref $value     ? (try { "$value" } catch { "<unknown>" })
+              : defined $value ? $value
+              :                  "(undef)";
+
     ($ident) = split /\n/, $ident;
+    $ident = "<<unknown>>"
+      unless defined $ident and length $ident and $ident =~ /\S/;
 
     return {
-      extension => "$basename.yaml",
-      mimetype  => 'text/plain',
-      body      => $dump,
-      ident     => $ident,
+      filename => "$basename.yaml",
+      mimetype => 'text/plain',
+      body     => $dump,
+      ident    => $ident,
     };
   } else {
     my $string = try { "$value" } catch { "value could not stringify: $_" };
     return {
-      extension => "$basename.txt",
-      mimetype  => 'text/plain',
-      body      => $string,
+      filename => "$basename.txt",
+      mimetype => 'text/plain',
+      body     => $string,
+      ident    => "<error>",
     };
   }
 }
