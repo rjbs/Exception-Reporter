@@ -15,50 +15,32 @@ along with the stringification of the dumpable value.
 
 =cut
 
-use YAML ();
 use Try::Tiny;
 
 sub can_summarize { 1 }
 
 sub summarize {
-  my ($self, $entry) = @_;
+  my ($self, $entry, $internal_arg) = @_;
   my ($name, $value, $arg) = @$entry;
 
   my $fn_base = $self->sanitize_filename($name);
 
-  return try {
-    my $body  = ref $value     ? YAML::Dump($value)
-              : defined $value ? $value
-              :                  "(undef)";;
+  my $dump = $internal_arg->{dumper}->dump($value);
 
-    my $ident = $body;
-    $ident =~ s/\A---\s*// if ref $value; # strip the document marker
+  # XXX: BIG MESS BEGINS
+  my $ident = $dump->{body};
+  $ident =~ s/\A---\s*// if ref $value; # strip the document marker
 
-    # If we've got a Perl-like exception string, make it more generic by
-    # stripping the throw location.
-    $ident =~ s/\s+(?:at .+?)? ?line\s\d+\.?$//;
+  # If we've got a Perl-like exception string, make it more generic by
+  # stripping the throw location.
+  $ident =~ s/\s+(?:at .+?)? ?line\s\d+\.?$//;
+  # XXX: BIG MESS ENDS
 
-    return {
-      filename => "$fn_base.yaml",
-      mimetype => 'text/plain',
-      ident    => $ident,
-      body     => $body,
-    };
-  } catch {
-    return(
-      {
-        filename => "$fn_base-error.txt",
-        mimetype => 'text/plain',
-        ident    => "$name dumpable dumping error",
-        body     => "could not summarize $name value: $_\n",
-      },
-      {
-        filename => "$fn_base-raw.txt",
-        mimetype => 'text/plain',
-        ident    => "$name dumpable stringification",
-        body     => do { no warnings 'uninitialized'; "$name" },
-      },
-    );
+  return {
+    filename => "$fn_base.yaml",
+    mimetype => $dump->{mimetype},
+    ident    => $dump->{ident} || "dump of $name",
+    body     => $dump->{body},
   };
 }
 

@@ -98,6 +98,7 @@ sub new {
   my $guts = {
     summarizers  => $arg->{summarizers},
     senders      => $arg->{senders},
+    dumper       => $arg->{dumper},
     always_dump  => $arg->{always_dump},
     caller_level => $arg->{caller_level} || 0,
   };
@@ -109,12 +110,16 @@ sub new {
     }
   }
 
+  Carp::confess("no dumper given!") unless $guts->{dumper};
+  Carp::confess("entry in dumper is not an Exception::Reporter::Dumper")
+    unless $guts->{dumper}->isa('Exception::Reporter::Dumper');
+
   for my $test (qw(Summarizer Sender)) {
     my $class = "Exception::Reporter::$test";
     my $key   = "\L${test}s";
 
-    Carp::confess("no $key given!") unless $arg->{$key} and @{ $arg->{$key} };
-    Carp::confess("entry in $key is not a $class")
+    Carp::confess("no $key given") unless $arg->{$key} and @{ $arg->{$key} };
+    Carp::confess("entry in $key is not an $class")
       if grep { ! $_->isa($class) } @{ $arg->{$key} };
   }
 
@@ -198,7 +203,9 @@ sub report_exception {
   ) {
     for my $sum (@sumz) {
       next unless $sum->can_summarize($dumpable);
-      push @summaries, [ $dumpable->[0], [ $sum->summarize($dumpable) ] ];
+      push @summaries, [ $dumpable->[0], [
+        $sum->summarize($dumpable, { dumper => $self->{dumper} })
+      ] ];
       next DUMPABLE;
     }
 
