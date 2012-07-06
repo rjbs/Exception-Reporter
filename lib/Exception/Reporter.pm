@@ -95,7 +95,7 @@ as the number of frames up the stack to look.  It defaults to zero.
 sub new {
   my ($class, $arg) = @_;
 
-  my $guts = {
+  my $self = {
     summarizers  => $arg->{summarizers},
     senders      => $arg->{senders},
     dumper       => $arg->{dumper},
@@ -103,16 +103,16 @@ sub new {
     caller_level => $arg->{caller_level} || 0,
   };
 
-  if ($guts->{always_dump}) {
-    for my $key (keys %{ $guts->{always_dump} }) {
+  if ($self->{always_dump}) {
+    for my $key (keys %{ $self->{always_dump} }) {
       Carp::confess("non-coderef entry in always_dump: $key")
-        unless ref($guts->{always_dump}{$key}) eq 'CODE';
+        unless ref($self->{always_dump}{$key}) eq 'CODE';
     }
   }
 
-  Carp::confess("no dumper given!") unless $guts->{dumper};
+  Carp::confess("no dumper given!") unless $self->{dumper};
   Carp::confess("entry in dumper is not an Exception::Reporter::Dumper")
-    unless $guts->{dumper}->isa('Exception::Reporter::Dumper');
+    unless $self->{dumper}->isa('Exception::Reporter::Dumper');
 
   for my $test (qw(Summarizer Sender)) {
     my $class = "Exception::Reporter::$test";
@@ -123,11 +123,17 @@ sub new {
       if grep { ! $_->isa($class) } @{ $arg->{$key} };
   }
 
-  bless $guts => $class;
+  bless $self => $class;
+
+  $_->register_reporter($self) for $self->_summarizers;
+
+  return $self;
 }
 
 sub _summarizers { return @{ $_[0]->{summarizers} }; }
 sub _senders     { return @{ $_[0]->{senders} }; }
+
+sub dumper { return $_[0]->{dumper} }
 
 =method report_exception
 
@@ -203,9 +209,7 @@ sub report_exception {
   ) {
     for my $sum (@sumz) {
       next unless $sum->can_summarize($dumpable);
-      push @summaries, [ $dumpable->[0], [
-        $sum->summarize($dumpable, { dumper => $self->{dumper} })
-      ] ];
+      push @summaries, [ $dumpable->[0], [ $sum->summarize($dumpable) ] ];
       next DUMPABLE;
     }
 

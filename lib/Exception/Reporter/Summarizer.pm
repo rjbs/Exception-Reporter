@@ -4,6 +4,7 @@ package Exception::Reporter::Summarizer;
 # ABSTRACT: a thing that summarizes dumpables for reporting
 
 use Carp ();
+use Scalar::Util ();
 
 =head1 OVERVIEW
 
@@ -32,6 +33,24 @@ sub sanitize_filename {
   $filename =~ s/\.+/./g;
   $filename =~ s/[^-a-zA-Z0-9]/-/g;
   return $filename;
+}
+
+sub register_reporter {
+  my ($self, $reporter) = @_;
+
+  Carp::confess("register_reporter called, but a reporter was already registered")
+    if $self->{reporter};
+
+  $self->{reporter} = $reporter;
+  Scalar::Util::weaken($self->{reporter});
+  return;
+}
+
+sub reporter { $_[0]->{reporter} }
+
+sub dump {
+  my ($self, $value) = @_;
+  $self->reporter->dumper->dump($value);
 }
 
 1;

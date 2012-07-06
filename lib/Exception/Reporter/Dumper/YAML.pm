@@ -7,7 +7,8 @@ use Try::Tiny;
 use YAML ();
 
 sub dump {
-  my ($self, $value) = @_;
+  my ($self, $value, $arg) = @_;
+  my $basename = $arg->{basename} || 'dump';
 
   my ($dump, $error) = try {
     (YAML::Dump($value), undef);
@@ -21,15 +22,17 @@ sub dump {
     ($ident) = split /\n/, $ident;
 
     return {
-      mimetype => 'text/plain',
-      body     => $dump,
-      ident    => $ident,
+      extension => "$basename.yaml",
+      mimetype  => 'text/plain',
+      body      => $dump,
+      ident     => $ident,
     };
   } else {
     my $string = try { "$value" } catch { "value could not stringify: $_" };
     return {
-      mimetype => 'text/plain',
-      body     => $string,
+      extension => "$basename.txt",
+      mimetype  => 'text/plain',
+      body      => $string,
     };
   }
 }

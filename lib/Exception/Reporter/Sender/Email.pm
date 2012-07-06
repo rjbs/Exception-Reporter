@@ -191,6 +191,7 @@ sub _build_email {
       );
 
       $these_parts[-1]->header_set(Date=>);
+      $these_parts[-1]->header_set('MIME-Version'=>);
     }
 
     if (@these_parts == 1) {
@@ -201,6 +202,7 @@ sub _build_email {
         parts       => \@these_parts,
       );
       $parts[-1]->header_set(Date=>);
+      $parts[-1]->header_set('MIME-Version'=>);
     }
 
     $parts[-1]->name_set($summary->[0]);
@@ -219,6 +221,7 @@ sub _build_email {
       },
     );
     $parts[-1]->header_set(Date=>);
+    $parts[-1]->header_set('MIME-Version'=>);
   }
 
   my $ident = $summaries->[0][1][0]{ident} && $summaries->[0][1][0]{ident}

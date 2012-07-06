@@ -118,7 +118,7 @@ my $guid = do {
 
   is($mime->header('Subject'), "Xyz: Everything sucks.", "right header");
   # print $mime->debug_structure;
-  # print $mime->as_string;
+  print $mime->as_string;
 
   is(
     $mime->header('X-Exception-Reporter-Reporter'),

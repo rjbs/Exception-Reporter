@@ -46,14 +46,14 @@ sub summarize {
   });
 
   if (! $exception->NoContextInfo) {
-    my $context = $internal_arg->{dumper}->dump({
+    my $context = $self->dump({
       time => $exception->time,
       pid  => $exception->pid,
       uid  => $exception->uid,
       euid => $exception->euid,
       gid  => $exception->gid,
       egid => $exception->egid,
-    });
+    }, { basename => 'exception-context' });
 
     push @summaries, (
       {
@@ -65,10 +65,9 @@ sub summarize {
         }),
       },
       {
-        filename => "exception-context.txt",
-        mimetype => $context->{mimetype},
-        ident    => "context info",
-        body     => $context->{body},
+        filename => 'exception-context.txt',
+        %$context,
+        ident    => 'exception context info',
       },
     );
   }
@@ -79,12 +78,11 @@ sub summarize {
       $hash->{ $field } = $exception->$field;
     }
 
-    my $fields = $internal_arg->{dumper}->dump($hash);
+    my $fields = $self->dump($hash, { basename => 'exception-fields' });
     push @summaries, {
-      filename => "exception-context.txt",
-      mimetype => $fields->{mimetype},
-      ident    => "context info",
-      body     => $fields->{body},
+      filename => "exception-fields.txt",
+      %$fields,
+      ident    => "exception fields",
     };
   }
 

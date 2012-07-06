@@ -25,22 +25,12 @@ sub summarize {
 
   my $fn_base = $self->sanitize_filename($name);
 
-  my $dump = $internal_arg->{dumper}->dump($value);
-
-  # XXX: BIG MESS BEGINS
-  my $ident = $dump->{body};
-  $ident =~ s/\A---\s*// if ref $value; # strip the document marker
-
-  # If we've got a Perl-like exception string, make it more generic by
-  # stripping the throw location.
-  $ident =~ s/\s+(?:at .+?)? ?line\s\d+\.?$//;
-  # XXX: BIG MESS ENDS
+  my $dump = $self->dump($value, { basename => $fn_base });
 
   return {
-    filename => "$fn_base.yaml",
-    mimetype => $dump->{mimetype},
-    ident    => $dump->{ident} || "dump of $name",
-    body     => $dump->{body},
+    filename => "$fn_base.txt",
+    ident    => "dump of $name",
+    %$dump,
   };
 }
 
