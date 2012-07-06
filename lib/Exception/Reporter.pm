@@ -1,6 +1,5 @@
-use strict;
-use warnings;
 package Exception::Reporter;
+use Moose;
 # ABSTRACT: a generic exception-reporting object
 
 =head1 SYNOPSIS
@@ -61,6 +60,9 @@ somebody who cares.
 =cut
 
 use Data::GUID guid_string => { -as => '_guid_string' };
+use Exception::Reporter::Dumper;
+use Exception::Reporter::Reporter;
+use Exception::Reporter::Summarizer;
 
 =method new
 
@@ -91,6 +93,43 @@ to skip those intermedite call frames, pass C<caller_level>.  It will be used
 as the number of frames up the stack to look.  It defaults to zero.
 
 =cut
+
+has summarizers => (
+  isa => 'ArrayRef[Exception::Reporter::Summarizer]',
+  required => 1,
+  traits   => [ 'Array' ],
+  handles  => { summarizers => 'elements' },
+);
+
+has senders => (
+  isa => 'ArrayRef[Exception::Reporter::Senders]',
+  required => 1,
+  traits   => [ 'Array' ],
+  handles  => { senders => 'elements' },
+);
+
+has dumper => (
+  is  => 'ro',
+  isa => 'Exception::Reporter::Dumper',
+  default  => sub {
+    my ($self) = @_;
+    require Exception::Reporter::Dumper::YAML;
+    Exception::Reporter::Dumper::YAML->new;
+  },
+);
+
+has caller_level => (
+  is  => 'ro',
+  isa => 'Int',
+  default => 0,
+);
+
+has _always_dump => (
+  is  => 'ro',
+  isa => 'HashRef[CodeRef]',
+  init_arg => 'always_dump',
+  default  => sub { {} },
+);
 
 sub new {
   my ($class, $arg) = @_;
