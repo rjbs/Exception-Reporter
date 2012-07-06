@@ -49,8 +49,8 @@ sub register_reporter {
 sub reporter { $_[0]->{reporter} }
 
 sub dump {
-  my ($self, $value) = @_;
-  $self->reporter->dumper->dump($value);
+  my ($self, $value, $arg) = @_;
+  $self->reporter->dumper->dump($value, $arg);
 }
 
 1;
