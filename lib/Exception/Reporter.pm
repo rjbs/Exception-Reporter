@@ -70,6 +70,7 @@ This returns a new reporter.  Valid arguments are:
 
   summarizers  - an arrayref of summarizer objects; required
   senders      - an arrayref of sender objects; required
+  dumper       - a Exception::Reporter::Dumper used for dumping data
   always_dump  - a hashref of coderefs used to generate extra dumpables
   caller_level - if given, the reporter will look n frames up; see below
 
@@ -110,7 +111,11 @@ sub new {
     }
   }
 
-  Carp::confess("no dumper given!") unless $self->{dumper};
+  $self->{dumper} ||= do {
+    require Exception::Reporter::Dumper::YAML;
+    Exception::Reporter::Dumper::YAML->new;
+  };
+
   Carp::confess("entry in dumper is not an Exception::Reporter::Dumper")
     unless $self->{dumper}->isa('Exception::Reporter::Dumper');
 
