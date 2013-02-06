@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+          add the Text dumper to summarize simple strings literally
 
 0.004     2013-01-03 14:39:54 America/New_York
           numerous little improvements, including better broken-out Dumpers

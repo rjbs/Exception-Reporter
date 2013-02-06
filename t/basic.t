@@ -12,6 +12,7 @@ use Exception::Reporter::Dumpable::File;
 use Exception::Reporter::Dumper::YAML;
 use Exception::Reporter::Sender::Email;
 use Exception::Reporter::Summarizer::Email;
+use Exception::Reporter::Summarizer::Text;
 use Exception::Reporter::Summarizer::File;
 use Exception::Reporter::Summarizer::ExceptionClass;
 use Exception::Reporter::Summarizer::Fallback;
@@ -33,6 +34,7 @@ my $reporter = Exception::Reporter->new({
     Exception::Reporter::Summarizer::Email->new,
     Exception::Reporter::Summarizer::File->new,
     Exception::Reporter::Summarizer::ExceptionClass->new,
+    Exception::Reporter::Summarizer::Text->new,
     Exception::Reporter::Summarizer::Fallback->new,
   ],
   caller_level => 1,
@@ -130,6 +132,24 @@ my $guid = do {
     $mime->header('X-Exception-Reporter-Caller'),
     qr/Failsy/,
     "we used caller_level to get the right default caller",
+  );
+}
+
+{
+  Email::Sender::Simple->default_transport->clear_deliveries;
+  ER->report_exception(
+    [
+      [ error => "\n\nSome stupid stuff at /usr/bin/stuff line 69105\n" ],
+    ],
+    { reporter => 'Zork' },
+  );
+  my @deliveries = Email::Sender::Simple->default_transport->deliveries;
+  is(@deliveries, 1, "we got another delivery");
+
+  is(
+    $deliveries[0]{email}->get_header('Subject'),
+    'Zork: Some stupid stuff',
+    "...with expected subject",
   );
 }
 
