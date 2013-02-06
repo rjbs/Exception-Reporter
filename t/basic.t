@@ -120,7 +120,7 @@ my $guid = do {
 
   is($mime->header('Subject'), "Xyz: Everything sucks.", "right header");
   # print $mime->debug_structure;
-  print $mime->as_string;
+  # print $mime->as_string;
 
   is(
     $mime->header('X-Exception-Reporter-Reporter'),
@@ -138,6 +138,36 @@ my $guid = do {
 {
   Email::Sender::Simple->default_transport->clear_deliveries;
   ER->report_exception(
+    [
+      [ error => "\n\nSome stupid stuff at /usr/bin/stuff line 69105\n" ],
+    ],
+    { reporter => 'Zork' },
+  );
+  my @deliveries = Email::Sender::Simple->default_transport->deliveries;
+  is(@deliveries, 1, "we got another delivery");
+
+  is(
+    $deliveries[0]{email}->get_header('Subject'),
+    'Zork: Some stupid stuff',
+    "...with expected subject",
+  );
+}
+
+{
+  my $reporter = Exception::Reporter->new({
+    senders     => [
+      Exception::Reporter::Sender::Email->new({
+        from => 'root',
+        to   => 'Example Sysadmins <sysadmins@example.com>',
+      }),
+    ],
+    summarizers => [
+      Exception::Reporter::Summarizer::Fallback->new,
+    ],
+  });
+
+  Email::Sender::Simple->default_transport->clear_deliveries;
+  $reporter->report_exception(
     [
       [ error => "\n\nSome stupid stuff at /usr/bin/stuff line 69105\n" ],
     ],

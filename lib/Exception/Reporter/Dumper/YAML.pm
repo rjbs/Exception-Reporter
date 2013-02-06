@@ -18,10 +18,10 @@ sub dump {
 
   if (defined $dump) {
     my $ident = ref $value     ? (try { "$value" } catch { "<unknown>" })
-              : defined $value ? $value
+              : defined $value ? "$value" # quotes in case of glob, vstr, etc.
               :                  "(undef)";
 
-    ($ident) = split /\n/, $ident;
+    $ident =~ s/\A\n*([^\n]+)(?:\n|$).*/$1/;
     $ident = "<<unknown>>"
       unless defined $ident and length $ident and $ident =~ /\S/;
 
