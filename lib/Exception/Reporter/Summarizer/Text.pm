@@ -41,7 +41,8 @@ sub summarize {
   };
 
   my $ident = $value;
-  $ident =~ s/\A\n*([^\n]+)(?:\n|$).*/$1/;
+  $ident =~ s/\A\n+//;
+  ($ident) = split /\n/, $ident;
 
   return {
     filename => "$fn_base.txt",

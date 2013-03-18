@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+          both simplify and improve the ident-generation for Text summarizer
 
 0.005     2013-02-06 12:00:07 America/New_York
           add the Text dumper to summarize simple strings literally
