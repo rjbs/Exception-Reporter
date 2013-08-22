@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.007     2013-08-22 17:35:07 America/New_York
           update bugtracker and repository
 
           add abstracts to all modules
