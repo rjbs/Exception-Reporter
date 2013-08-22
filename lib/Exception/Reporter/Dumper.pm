@@ -1,6 +1,7 @@
 use strict;
 use warnings;
 package Exception::Reporter::Dumper;
+# ABSTRACT: something that dumps values into records
 
 sub new {
   my $class = shift;

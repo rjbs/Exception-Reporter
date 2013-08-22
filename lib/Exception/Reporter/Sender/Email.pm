@@ -1,8 +1,8 @@
 use strict;
 use warnings;
 package Exception::Reporter::Sender::Email;
-# ABSTRACT: an report sender that sends detailed dumps via email
 use parent 'Exception::Reporter::Sender';
+# ABSTRACT: a report sender that sends detailed dumps via email
 
 =head1 SYNOPSIS
 

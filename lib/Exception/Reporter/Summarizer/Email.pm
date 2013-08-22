@@ -2,6 +2,7 @@ use strict;
 use warnings;
 package Exception::Reporter::Summarizer::Email;
 use parent 'Exception::Reporter::Summarizer';
+# ABSTRACT: a summarizer for Email::Simple objects
 
 =head1 OVERVIEW
 

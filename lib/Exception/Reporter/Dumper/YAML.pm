@@ -2,6 +2,7 @@ use strict;
 use warnings;
 package Exception::Reporter::Dumper::YAML;
 use parent 'Exception::Reporter::Dumper';
+# ABSTRACT: a dumper to turn any scalar value into a plaintext YAML record
 
 use Try::Tiny;
 use YAML ();

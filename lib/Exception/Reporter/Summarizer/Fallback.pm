@@ -2,6 +2,7 @@ use strict;
 use warnings;
 package Exception::Reporter::Summarizer::Fallback;
 use parent 'Exception::Reporter::Summarizer';
+# ABSTRACT: a summarizer for stuff you couldn't deal with otherwise
 
 =head1 OVERVIEW
 

@@ -1,6 +1,9 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+          update bugtracker and repository
+
+          add abstracts to all modules
 
 0.006     2013-03-18 15:41:35 America/New_York
           both simplify and improve the ident-generation for Text summarizer

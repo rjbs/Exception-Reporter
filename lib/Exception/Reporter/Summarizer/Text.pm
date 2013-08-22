@@ -2,6 +2,7 @@ use strict;
 use warnings;
 package Exception::Reporter::Summarizer::Text;
 use parent 'Exception::Reporter::Summarizer';
+# ABSTRACT: a summarizer for plain text strings
 
 =head1 OVERVIEW
 
