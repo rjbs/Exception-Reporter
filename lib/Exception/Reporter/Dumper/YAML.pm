@@ -10,7 +10,9 @@ use YAML ();
 sub _ident_from {
   my ($self, $str, $x) = @_;
 
-  $str =~ s/\A\n*([^\n]+)(?:\n|$).*/$1/;
+  $str =~ s/\A\n+//;
+  ($str) = split /\n/, $str;
+
   unless (defined $str and length $str and $str =~ /\S/) {
     $str = sprintf "<<unknown%s>>", $x ? ' ($x)' : '';
   }

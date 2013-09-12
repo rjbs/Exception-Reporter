@@ -230,6 +230,7 @@ sub _build_email {
   my $digest_ident = $ident;
   $ident =~ s/\s+(?:at .+?)? ?line\s\d+\.?$//;
   $ident =~ s/\(.+//g;
+  ($ident) = split /\n/, $ident;
 
   my ($package, $filename, $line) = @{ $internal_arg->{caller} };
 
