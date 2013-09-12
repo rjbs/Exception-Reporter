@@ -7,6 +7,17 @@ use parent 'Exception::Reporter::Dumper';
 use Try::Tiny;
 use YAML ();
 
+sub _ident_from {
+  my ($self, $str, $x) = @_;
+
+  $str =~ s/\A\n*([^\n]+)(?:\n|$).*/$1/;
+  unless (defined $str and length $str and $str =~ /\S/) {
+    $str = sprintf "<<unknown%s>>", $x ? ' ($x)' : '';
+  }
+
+  return $str;
+}
+
 sub dump {
   my ($self, $value, $arg) = @_;
   my $basename = $arg->{basename} || 'dump';
@@ -22,9 +33,7 @@ sub dump {
               : defined $value ? "$value" # quotes in case of glob, vstr, etc.
               :                  "(undef)";
 
-    $ident =~ s/\A\n*([^\n]+)(?:\n|$).*/$1/;
-    $ident = "<<unknown>>"
-      unless defined $ident and length $ident and $ident =~ /\S/;
+    $ident = $self->_ident_from($ident);
 
     return {
       filename => "$basename.yaml",
@@ -34,11 +43,18 @@ sub dump {
     };
   } else {
     my $string = try { "$value" } catch { "value could not stringify: $_" };
+    my $ident  = $self->_ident_from($string);
+
     return {
       filename => "$basename.txt",
       mimetype => 'text/plain',
-      body     => $string,
-      ident    => "<error>",
+      body     => <<EOB,
+__DATA__
+$string
+__YAML_ERROR__
+$error
+EOB
+      ident    => $ident,
     };
   }
 }
