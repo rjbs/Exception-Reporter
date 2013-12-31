@@ -228,8 +228,9 @@ sub _build_email {
            || "(unknown exception)";;
 
   ($ident) = split /\n/, $ident;
+  $ident =~ s/\s+(?:at .+?)? ?line\s\d+\.?$//;
+
   my $digest_ident = $ident;
-  $digest_ident =~ s/\s+(?:at .+?)? ?line\s\d+\.?$//;
   $digest_ident =~ s/\(.+//g;
 
   my ($package, $filename, $line) = @{ $internal_arg->{caller} };
