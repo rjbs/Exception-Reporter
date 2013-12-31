@@ -2,6 +2,9 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+0.011     2013-12-31 13:41:12 America/New_York
+        - fix some infelicities in email subject and thread id construction
+
 0.010     2013-09-12 09:46:44 America/New_York
         - when the YAML dumper fails to dump, include the reason why
 
