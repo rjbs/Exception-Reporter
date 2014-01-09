@@ -5,7 +5,7 @@ use parent 'Exception::Reporter::Dumper';
 # ABSTRACT: a dumper to turn any scalar value into a plaintext YAML record
 
 use Try::Tiny;
-use YAML ();
+use YAML::XS ();
 
 sub _ident_from {
   my ($self, $str, $x) = @_;
@@ -25,7 +25,7 @@ sub dump {
   my $basename = $arg->{basename} || 'dump';
 
   my ($dump, $error) = try {
-    (YAML::Dump($value), undef);
+    (YAML::XS::Dump($value), undef);
   } catch {
     (undef, $_);
   };
