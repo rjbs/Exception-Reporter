@@ -2,6 +2,11 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+0.012     2014-01-11 14:19:46-05:00 America/New_York
+        - YAML dumper now uses YAML::XS, as previous bugs (see 0.003) are,
+          I think, fixed now; on the other hand, there were some crazy
+          B-related bugs in 5.16 and later
+
 0.011     2013-12-31 13:41:12 America/New_York
         - fix some infelicities in email subject and thread id construction
 
