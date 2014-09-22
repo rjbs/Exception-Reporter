@@ -153,7 +153,7 @@ Useful options in C<%arg> are:
                 the calling package
 
   handled     - this indicates that this exception has been handled and that
-                the user has not seen a terribel crash; senders might use
+                the user has not seen a terrible crash; senders might use
                 this to decide who needs to get woken up
 
   extra_rcpts - this can be an arrayref of email addresses to be used as
