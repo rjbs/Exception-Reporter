@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+        - add a Moose exception dumper
 
 0.012     2014-01-11 14:19:46-05:00 America/New_York
         - YAML dumper now uses YAML::XS, as previous bugs (see 0.003) are,
