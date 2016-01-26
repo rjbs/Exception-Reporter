@@ -41,10 +41,10 @@ sub summarize {
       mimetype => 'text/plain',
       ident    => $ident,
       body     => $exception->as_string,
-    }
+    },
     {
       filename => "exception-dump.txt",
-      %{ $self->dump($hash, { basename => 'exception-dump' }) },
+      %{ $self->dump($exception, { basename => 'exception-dump' }) },
       ident    => "exception dump",
     },
   );
