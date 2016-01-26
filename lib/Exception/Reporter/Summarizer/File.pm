@@ -1,8 +1,9 @@
 use strict;
 use warnings;
 package Exception::Reporter::Summarizer::File;
-use parent 'Exception::Reporter::Summarizer';
 # ABSTRACT: a summarizer for a File object
+
+use parent 'Exception::Reporter::Summarizer';
 
 =head1 OVERVIEW
 

@@ -1,8 +1,9 @@
 use strict;
 use warnings;
 package Exception::Reporter::Summarizer::Email;
-use parent 'Exception::Reporter::Summarizer';
 # ABSTRACT: a summarizer for Email::Simple objects
+
+use parent 'Exception::Reporter::Summarizer';
 
 =head1 OVERVIEW
 

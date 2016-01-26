@@ -1,8 +1,9 @@
 use strict;
 use warnings;
 package Exception::Reporter::Summarizer::MooseException;
-use parent 'Exception::Reporter::Summarizer';
 # ABSTRACT: a summarizer for Moose exceptions
+
+use parent 'Exception::Reporter::Summarizer';
 
 =head1 OVERVIEW
 

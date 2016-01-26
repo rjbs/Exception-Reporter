@@ -1,8 +1,9 @@
 use strict;
 use warnings;
 package Exception::Reporter::Summarizer::ExceptionClass;
-use parent 'Exception::Reporter::Summarizer';
 # ABSTRACT: a summarizer for Exception::Class exceptions
+
+use parent 'Exception::Reporter::Summarizer';
 
 =head1 OVERVIEW
 
