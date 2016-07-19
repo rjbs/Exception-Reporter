@@ -1,7 +1,10 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.013     2016-07-19 14:26:30-04:00 America/New_York
         - add a Moose exception dumper
+        - add a Dir sender to write exception reports to the local filesystem
 
 0.012     2014-01-11 14:19:46-05:00 America/New_York
         - YAML dumper now uses YAML::XS, as previous bugs (see 0.003) are,
