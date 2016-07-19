@@ -1,8 +1,6 @@
 use strict;
 use warnings;
 
-use lib 'lib';
-
 BEGIN { $ENV{EMAIL_SENDER_TRANSPORT} = 'Test'; }
 
 use Test::More;
@@ -10,6 +8,7 @@ use Test::More;
 use Exception::Reporter;
 use Exception::Reporter::Dumpable::File;
 use Exception::Reporter::Dumper::YAML;
+use Exception::Reporter::Sender::Dir;
 use Exception::Reporter::Sender::Email;
 use Exception::Reporter::Summarizer::Email;
 use Exception::Reporter::Summarizer::Text;
@@ -21,15 +20,9 @@ use Exception::Class::Base;
 
 use Email::MIME::ContentType;
 
-my $reporter = Exception::Reporter->new({
+my %COMMON = (
   always_dump => { env => sub { \%ENV } },
   dumper      => Exception::Reporter::Dumper::YAML->new,
-  senders     => [
-    Exception::Reporter::Sender::Email->new({
-      from => 'root',
-      to   => 'Example Sysadmins <sysadmins@example.com>',
-    }),
-  ],
   summarizers => [
     Exception::Reporter::Summarizer::Email->new,
     Exception::Reporter::Summarizer::File->new,
@@ -38,10 +31,21 @@ my $reporter = Exception::Reporter->new({
     Exception::Reporter::Summarizer::Fallback->new,
   ],
   caller_level => 1,
-});
+);
 
 {
-  package ER;
+  package ER::Email;
+
+  my $reporter = Exception::Reporter->new({
+    %COMMON,
+    senders     => [
+      Exception::Reporter::Sender::Email->new({
+        from => 'root',
+        to   => 'Example Sysadmins <sysadmins@example.com>',
+      }),
+    ],
+  });
+
   sub report_exception {
     my $class = shift;
     $reporter->report_exception(@_);
@@ -80,7 +84,7 @@ my $file_2 = Exception::Reporter::Dumpable::File->new('does-not-exist.txt');
 
 my $guid = do {
   package Failsy;
-  ER->report_exception(
+  ER::Email->report_exception(
     [
       [ ecb    => $exception    ],
       [ string => "Your fault." ],
@@ -137,7 +141,7 @@ my $guid = do {
 
 {
   Email::Sender::Simple->default_transport->clear_deliveries;
-  ER->report_exception(
+  ER::Email->report_exception(
     [
       [ error => "\n\nSome stupid stuff at /usr/bin/stuff line 69105\n" ],
     ],
