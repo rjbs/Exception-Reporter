@@ -96,6 +96,8 @@ sub send_report {
 
     my $base = $name;
     $name = "$base-" . $n++ while $manifest{$name};
+
+    return $name;
   };
 
   my $root = $self->{root}->child($internal_arg->{guid});
@@ -105,31 +107,34 @@ sub send_report {
   GROUP: for my $summary (@$summaries) {
     my @these_parts;
 
-    my $target_dir = $root;
+    my $t_path = \&path;
     if (@{ $summary->[1] } > 1) {
       my $name = $safename->($summary->[0]);
       $manifest{$name} = { ident => $summary->[0] };
 
-      $target_dir = $root->child($name);
-      $target_dir->mkpath;
+      $root->child($name)->mkpath;
+      my $target_path = path($name);
 
+      $t_path = sub { $target_path->child($_[0]) };
     }
 
-    my $file = $target_dir->child(
-      $safename->( $summary->{filename} || 'summary' )
-    );
+    for my $inner (@{ $summary->[1] }) {
+      my $file = $t_path->(
+        $safename->( $inner->{filename} || 'inner' )
+      );
 
-    $manifest{$file} = {
-      filename      => $summary->{filename},
-      content_type  => $summary->{mimetype},
+      $manifest{$file} = {
+        filename      => $inner->{filename},
+        content_type  => $inner->{mimetype},
 
-      (($summary->{body_is_bytes} && $summary->{charset})
-        ? (charset => $summary->{charset})
-        : ()),
-    };
+        (($inner->{body_is_bytes} && $inner->{charset})
+          ? (charset => $inner->{charset})
+          : ()),
+      };
 
-    my $method = $summary->{body_is_bytes} ? 'spew_raw' : 'spew_utf8';
-    $file->$method($summary->{body});
+      my $method = $inner->{body_is_bytes} ? 'spew_raw' : 'spew_utf8';
+      $root->child($file)->$method($inner->{body});
+    }
   }
 
   if ($arg->{handled}) {

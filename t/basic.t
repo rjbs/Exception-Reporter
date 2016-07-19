@@ -20,28 +20,52 @@ use Exception::Class::Base;
 
 use Email::MIME::ContentType;
 
-my %COMMON = (
-  always_dump => { env => sub { \%ENV } },
-  dumper      => Exception::Reporter::Dumper::YAML->new,
-  summarizers => [
-    Exception::Reporter::Summarizer::Email->new,
-    Exception::Reporter::Summarizer::File->new,
-    Exception::Reporter::Summarizer::ExceptionClass->new,
-    Exception::Reporter::Summarizer::Text->new,
-    Exception::Reporter::Summarizer::Fallback->new,
-  ],
-  caller_level => 1,
-);
+sub common_config {
+  return (
+    always_dump => { env => sub { \%ENV } },
+    dumper      => Exception::Reporter::Dumper::YAML->new,
+    summarizers => [
+      Exception::Reporter::Summarizer::Email->new,
+      Exception::Reporter::Summarizer::File->new,
+      Exception::Reporter::Summarizer::ExceptionClass->new,
+      Exception::Reporter::Summarizer::Text->new,
+      Exception::Reporter::Summarizer::Fallback->new,
+    ],
+    caller_level => 1,
+  );
+}
 
 {
   package ER::Email;
 
   my $reporter = Exception::Reporter->new({
-    %COMMON,
+    ::common_config(),
     senders     => [
       Exception::Reporter::Sender::Email->new({
         from => 'root',
         to   => 'Example Sysadmins <sysadmins@example.com>',
+      }),
+    ],
+  });
+
+  sub report_exception {
+    my $class = shift;
+    $reporter->report_exception(@_);
+  }
+}
+
+{
+  package ER::Dir;
+
+  use Path::Tiny ();
+
+  our $tempdir = Path::Tiny->tempdir;
+
+  my $reporter = Exception::Reporter->new({
+    ::common_config(),
+    senders     => [
+      Exception::Reporter::Sender::Dir->new({
+        root => "$tempdir",
       }),
     ],
   });
@@ -82,24 +106,30 @@ my $file_1 = Exception::Reporter::Dumpable::File->new('misc/ls.long', {
 });
 my $file_2 = Exception::Reporter::Dumpable::File->new('does-not-exist.txt');
 
-my $guid = do {
-  package Failsy;
-  ER::Email->report_exception(
-    [
-      [ ecb    => $exception    ],
-      [ string => "Your fault." ],
-      [ email  => $email        ],
-      [ f1     => $file_1       ],
-      [ f2     => $file_2       ],
-    ],
-    {
-      handled  => 1,
-      reporter => 'Xyz',
-    },
-  );
-};
+my %guid;
 
-{
+for my $which (qw( ER::Email ER::Dir )) {
+  $guid{$which} = do {
+    package Failsy;
+    $which->report_exception(
+      [
+        [ ecb    => $exception    ],
+        [ string => "Your fault." ],
+        [ email  => $email        ],
+        [ f1     => $file_1       ],
+        [ f2     => $file_2       ],
+      ],
+      {
+        handled  => 1,
+        reporter => 'Xyz',
+      },
+    );
+  };
+}
+
+subtest "report via email" => sub {
+  my $guid = $guid{'ER::Email'};
+
   my @deliveries = Email::Sender::Simple->default_transport->deliveries;
 
   is(@deliveries, 1, "one delivery");
@@ -137,9 +167,9 @@ my $guid = do {
     qr/Failsy/,
     "we used caller_level to get the right default caller",
   );
-}
+};
 
-{
+subtest "subject and reporter behavior" => sub {
   Email::Sender::Simple->default_transport->clear_deliveries;
   ER::Email->report_exception(
     [
@@ -155,7 +185,7 @@ my $guid = do {
     'Zork: Some stupid stuff',
     "...with expected subject",
   );
-}
+};
 
 {
   my $reporter = Exception::Reporter->new({
