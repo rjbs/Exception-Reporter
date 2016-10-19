@@ -48,7 +48,7 @@ sub new {
 
 =head2 send_report
 
- $email_reporter->send_report(\@summaries, \%arg, \%internal_arg);
+ $dir_reporter->send_report(\@summaries, \%arg, \%internal_arg);
 
 This method makes a subdirectory for the report and writes it out.
 
@@ -57,9 +57,8 @@ C<report_exception> method.  Arguments that will have an effect include:
 
   reporter     - the name of the program reporting the exception
   handled      - if true, the reported exception was handled and the user
-                 saw a simple error message; sets X-Exception-Handled header
-                 and adds a text part at the beginning of the report,
-                 calling out the "handled" status"
+                 saw a simple error message; adds C<< "handled":true >>
+                 to the JSON body of the report
 
 C<%internal_arg> contains data produced by the Exception::Reporter using this
 object.  It includes the C<guid> of the report and the C<caller> calling the
