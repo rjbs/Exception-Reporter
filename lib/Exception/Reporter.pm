@@ -145,7 +145,7 @@ sub dumper { return $_[0]->{dumper} }
   $reporter->report_exception(\@dumpables, \%arg);
 
 This method makes the reporter do its job: summarize dumpables and send a
-report.
+report. It returns a guid.
 
 Useful options in C<%arg> are:
 
