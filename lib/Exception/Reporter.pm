@@ -203,9 +203,40 @@ sub report_exception {
   my @caller = caller( $self->{caller_level} );
   $arg->{reporter} ||= $caller[0];
 
-  my @summaries;
+  my $summaries = $self->collect_summaries($dumpables);
+
+  for my $sender ($self->_senders) {
+    $sender->send_report(
+      $summaries,
+      $arg,
+      {
+        guid   => $guid,
+        caller => \@caller,
+      }
+    );
+  }
+
+  return $guid;
+}
+
+=method collect_summaries
+
+  $reporter->report_exception(\@dumpables);
+
+This method is used by L</report_exception> to convert dumpables into
+summaries. It may be called directly by summarizers through
+C<< $self->reporter->collect_summaries(\@dumpables); >> if your
+summarizers receive dumpables that may be handled by another summarizer. Be
+wary though, because you could possibly create an endless loop...
+
+=cut
+
+sub collect_summaries {
+  my ($self, $dumpables) = @_;
 
   my @sumz = $self->_summarizers;
+
+  my @summaries;
 
   DUMPABLE: for my $dumpable (
     @$dumpables,
@@ -229,18 +260,7 @@ sub report_exception {
     ];
   }
 
-  for my $sender ($self->_senders) {
-    $sender->send_report(
-      \@summaries,
-      $arg,
-      {
-        guid   => $guid,
-        caller => \@caller,
-      }
-    );
-  }
-
-  return $guid;
+  return \@summaries;
 }
 
 1;
