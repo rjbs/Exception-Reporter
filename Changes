@@ -1,6 +1,9 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+        - the return value of report_exception has been documented
+        - the Reporter now has a collect_summaries method for performing
+          recursive summarization (thanks, Matthew Horsfall)
 
 0.013     2016-07-19 14:26:30-04:00 America/New_York
         - add a Moose exception dumper
