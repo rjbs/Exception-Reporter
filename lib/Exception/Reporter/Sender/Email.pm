@@ -8,7 +8,7 @@ use parent 'Exception::Reporter::Sender';
 =head1 SYNOPSIS
 
   my $sender = Exception::Reporter::Sender::Email->new({
-    from => 'root',
+    from => 'root@example.com',
     to   => 'Beloved SysAdmins <sysadmins@example.com>',
   });
 

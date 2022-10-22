@@ -16,7 +16,7 @@ accessible, like MyApp->reporter.
     always_dump => { env => sub { \%ENV } },
     senders     => [
       Exception::Reporter::Sender::Email->new({
-        from => 'root',
+        from => 'root@example.com',
         to   => 'SysAdmins <sysadmins@example.com>',
       }),
     ],
