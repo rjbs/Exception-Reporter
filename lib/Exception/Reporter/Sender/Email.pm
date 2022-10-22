@@ -37,7 +37,7 @@ reader.
 =cut
 
 use Digest::MD5 ();
-use Email::Address ();
+use Email::Address::XS ();
 use Email::MIME::Creator ();
 use Email::MessageID ();
 use Email::Sender::Simple ();
@@ -50,11 +50,11 @@ sub new {
   my $from = $arg->{from} || Carp::confess("missing 'from' argument");
   my $to   = $arg->{to}   || Carp::confess("missing 'to' argument"),
 
-  ($from) = Email::Address->parse($from);
-  ($to)   = [ map {; Email::Address->parse($_) } (ref $to ? @$to : $to) ];
+  ($from) = Email::Address::XS->parse($from);
+  ($to)   = [ map {; Email::Address::XS->parse($_) } (ref $to ? @$to : $to) ];
 
   # Allow mail from a simple, bare local-part like "root" -- rjbs, 2012-07-03
-  $from = Email::Address->new(undef, $arg->{from})
+  $from = Email::Address::XS->new(undef, $arg->{from})
     if ! $from and $arg->{from} =~ /\A[-.0-9a-zA-Z]+\z/;
 
   Carp::confess("couldn't interpret $arg->{from} as an email address")
