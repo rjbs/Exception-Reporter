@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+        - prep next release
 
 0.014     2017-04-21 13:52:40-04:00 America/New_York
         - the return value of report_exception has been documented
